@@ -15,6 +15,8 @@
     <file url="file://$PROJECT_DIR$/extensions/jolie-embedding-legacy/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/jsonrpc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/jsonrpc/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/kafka/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/extensions/kafka/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/local/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/local/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/extensions/localsocket/src/main/java" charset="UTF-8" />

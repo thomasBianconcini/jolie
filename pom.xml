@@ -45,6 +45,7 @@
 		<module>extensions/localsocket</module>
 		<module>extensions/rmi</module>
 		<module>extensions/soap</module>
+		<module>extensions/kafka</module>
 		<module>extensions/soaps</module>
 		<module>extensions/sodeps</module>
 		<module>extensions/xmlrpc</module>

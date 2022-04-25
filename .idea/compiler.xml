@@ -31,9 +31,10 @@
         <module name="jolie-js" />
         <module name="jolie2plasma" />
         <module name="btl2cap" />
+        <module name="jolie (1)" />
         <module name="sodeps" />
-        <module name="jolie" />
         <module name="javascript" />
+        <module name="kafka" />
         <module name="jolie2surface" />
         <module name="http" />
         <module name="sodep" />
@@ -51,7 +52,8 @@
       <module name="http" target="1.8" />
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
-      <module name="jolie" target="11" />
+      <module name="jolie" target="1.5" />
+      <module name="jolie (1)" target="11" />
       <module name="jolie-cli" target="11" />
       <module name="jolie-distribution" target="1.5" />
       <module name="jolie-embedding-legacy" target="1.8" />
@@ -66,6 +68,7 @@
       <module name="jolie2wsdl" target="1.8" />
       <module name="joliec" target="1.8" />
       <module name="jsonrpc" target="1.8" />
+      <module name="kafka" target="11" />
       <module name="launchers" target="1.5" />
       <module name="libjolie" target="11" />
       <module name="local" target="1.8" />
