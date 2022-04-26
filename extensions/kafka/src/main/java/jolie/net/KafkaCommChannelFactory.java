@@ -12,9 +12,10 @@ public class KafkaCommChannelFactory extends CommChannelFactory {
 		super( commCore );
 	}
 
-	@Override public CommChannel createChannel( URI location, OutputPort port ) throws IOException {
-		try{
-			return new KafkaCommChannel(location, port.getProtocol());
+	@Override
+	public CommChannel createChannel( URI location, OutputPort port ) throws IOException {
+		try {
+			return new KafkaCommChannel( location, port.getProtocol() );
 		} catch( URISyntaxException e ) {
 			throw new IOException( e );
 		}

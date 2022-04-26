@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class KafkaConnectionHandler {
-	private static final Map<URI, KafkaConnection > CONNECTIONS = new HashMap();
+	private static final Map< URI, KafkaConnection > CONNECTIONS = new HashMap();
 
 	public static KafkaConnection getConnection( URI location ) throws IOException {
 		// If not already connected, do this.
@@ -17,7 +17,7 @@ public class KafkaConnectionHandler {
 		return CONNECTIONS.get( location );
 	}
 
-	//Create and set a connection
+	// Create and set a connection
 	private static void setConnection( URI location ) throws IOException {
 		CONNECTIONS.put( location, new KafkaConnection( location ) );
 	}

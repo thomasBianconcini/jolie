@@ -9,13 +9,14 @@ import java.io.IOException;
 
 public class KafkaCommListenerFactory extends CommListenerFactory {
 
-	public KafkaCommListenerFactory(CommCore commCore)
-	{
-		super(commCore);
+	public KafkaCommListenerFactory( CommCore commCore ) {
+		super( commCore );
 	}
-	@Override public CommListener createListener( Interpreter interpreter, CommProtocolFactory protocolFactory,
+
+	@Override
+	public CommListener createListener( Interpreter interpreter, CommProtocolFactory protocolFactory,
 		InputPort inputPort ) throws IOException {
-		return new KafkaCommListener( interpreter,protocolFactory,inputPort );
+		return new KafkaCommListener( interpreter, protocolFactory, inputPort );
 	}
 
 }

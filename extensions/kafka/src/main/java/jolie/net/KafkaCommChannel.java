@@ -2,7 +2,6 @@ package jolie.net;
 
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
-import jolie.runtime.Value;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -12,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 
@@ -21,70 +21,76 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	private final URI location;
 	// Input
 	private KafkaMessage data;
-	//Output
-	private CommMessage message = null;
-	private Properties prop ;
+	// Output
+	private CommMessage message;
+	private Properties prop;
 
-	String kafka_topic_name;
-	String bootstrap_servers;
+	final String kafkaTopicName;
+	final String bootstrapServers;
+
 	public KafkaCommChannel( URI location, CommProtocol protocol ) throws IOException {
-		super(location,protocol);
-		this.location=location;
+		super( location, protocol );
+		this.location = location;
 		// add parametri
-		kafka_topic_name = locationAttributes().get("topic");
-		bootstrap_servers = locationAttributes().get("bootstrap");
+		this.message = null;
+		kafkaTopicName = locationAttributes().get( "topic" );
+		bootstrapServers = locationAttributes().get( "bootstrap" );
 		// valutare altre proprietà da aggiungere
-	setToBeClosed( false );
+		setToBeClosed( false );
 	}
+
 	@Override
-	protected void closeImpl() throws IOException{
+	protected void closeImpl() throws IOException {
 		KafkaConnectionHandler.closeConnection( location );
 	}
 
-	@Override protected CommMessage recvImpl() throws IOException {
+	@Override
+	protected CommMessage recvImpl() throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		CommMessage returnMessage;
-		//if we are an Input Port
-		if(data != null)
-		{
+		// if we are an Input Port
+		if( data != null ) {
 			returnMessage = protocol().recv( new ByteArrayInputStream( data.body ), ostream );
 			return returnMessage;
 		}
-		//if we are an Outputport
+		// if we are an Outputport
 
 		throw new IOException( "Wrong context for receive!" );
 	}
 
 
-	@Override protected void sendImpl( CommMessage message ) throws IOException {
+	@Override
+	protected void sendImpl( CommMessage message ) throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		protocol().send( ostream, message, null );
-		this.message=message;
+		this.message = message;
 
 		// OutputPort
-		if(parentPort() instanceof OutputPort )
-		{
-			prop= new Properties();
-			prop.put("bootstrap.servers",bootstrap_servers);
-			prop.setProperty("kafka.topic.name",kafka_topic_name);
-			KafkaProducer<String, byte[]> producer = new KafkaProducer<String, byte[]>(this.prop,new StringSerializer(),new ByteArraySerializer());
-			ProducerRecord<String,byte[]>  record = new ProducerRecord<String ,byte[]>(prop.getProperty("kafka.topic.name"), ostream.toByteArray());
-			producer.send((record));
+		if( parentPort() instanceof OutputPort ) {
+			prop = new Properties();
+			prop.put( "bootstrap.servers", bootstrapServers );
+			prop.setProperty( "kafka.topic.name", kafkaTopicName );
+			KafkaProducer< String, byte[] > producer =
+				new KafkaProducer<>( this.prop, new StringSerializer(), new ByteArraySerializer() );
+			ProducerRecord< String, byte[] > record =
+				new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ),
+					this.message.toString().getBytes( StandardCharsets.UTF_8 ) );
+			producer.send( (record) );
 			producer.close();
 
-		}else {
+		} else {
 			throw new IOException( "Port is of unexpected type!" );
 		}
 		// Input Port to cambe back to sender
 
 	}
 
-	public Map<String,String> locationAttributes()throws IOException{
+	public Map< String, String > locationAttributes() throws IOException {
 		return KafkaConnectionHandler.getConnection( location ).getLocationAttributes();
 	}
-	public void setData (KafkaMessage msg)
-	{
-		this.data=data;
+
+	public void setData( KafkaMessage msg ) {
+		this.data = data;
 	}
 
 }
