@@ -17,8 +17,12 @@
     <groupId>org.jolie-lang</groupId>
     <artifactId>kafka</artifactId>
     <version>1.0.0</version>
-    <!-- -->
     <packaging>jar</packaging>
+    <properties>    <!-- che tipo di java uso -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
     <name>kafka</name>
     <description>Kafka protocol for Jolie.</description>
     <build>
@@ -31,7 +35,7 @@
                     <archive>
                         <manifestEntries>
                             <X-JOLIE-ChannelExtension>kafka:jolie.net.KafkaCommChannelFactory</X-JOLIE-ChannelExtension>
-                            <X-JOLIE-ListenerExtension>amqp:jolie.net.KafkaCommListenerFactory</X-JOLIE-ListenerExtension>
+                            <X-JOLIE-ListenerExtension>kafka:jolie.net.KafkaCommListenerFactory</X-JOLIE-ListenerExtension>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -40,7 +44,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.1.1</version>
-                <!-- valutare -->
                 <executions>
                     <execution>
                         <id>copy-installed</id>
@@ -52,7 +55,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.jolie-lang</groupId>
-                                    <artifactId>${project.artifactId}</artifactId>
+                                    <artifactId>jolie</artifactId>
                                     <version>${jolie.version}</version>
                                     <type>jar</type>
                                     <destFileName>${project.artifactId}.jar</destFileName>
@@ -69,13 +72,11 @@
                         </goals>
                         <configuration>
                             <artifactItems>
-                                <!-- controllare!!! -->
                                 <artifactItem>
                                     <groupId>org.apache.kafka</groupId>
                                     <artifactId>kafka_2.13</artifactId>
                                     <version>3.1.0</version>
                                     <type>jar</type>
-                                    <!-- controllare!!! -->
                                     <destFileName>kakfa_2.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
@@ -114,11 +115,4 @@
                 <version>3.1.0</version>
             </dependency>
     </dependencies>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-    </properties>
-    
 </project>

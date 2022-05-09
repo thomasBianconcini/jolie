@@ -19,7 +19,7 @@ public class KafkaConnection {
 	}
 
 	public void close() {
-		locationAttributes = new HashMap<>();
+		locationAttributes = null;
 	}
 
 	public void readAttributes() {
@@ -31,7 +31,8 @@ public class KafkaConnection {
 		// kafka://localhost:8080?topic=nome_topic&.... valutare
 		String splits[] = location.toString().split( "\\?" );
 		Map< String, String > map = new HashMap();
-		map.put( "bootstrap", splits[ 0 ] );
+		String boot = splits[ 0 ].split( "//" )[ 1 ];
+		map.put( "bootstrap", boot );
 		String attributes[] = query.split( "&" );
 		// ipotizzando solo topic da valutare altri parametri
 		for( String attribute : attributes ) {

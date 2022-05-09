@@ -1,7 +1,9 @@
 package jolie.net;
 
+import jolie.net.ports.InputPort;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.Value;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -54,7 +56,11 @@ public class KafkaCommChannel extends StreamingCommChannel {
 			return returnMessage;
 		}
 		// if we are an Outputport
-
+		if( message != null ) {
+			returnMessage = CommMessage.createResponse( message, Value.UNDEFINED_VALUE );
+			message = null;
+			return returnMessage;
+		}
 		throw new IOException( "Wrong context for receive!" );
 	}
 
@@ -78,10 +84,22 @@ public class KafkaCommChannel extends StreamingCommChannel {
 			producer.send( (record) );
 			producer.close();
 
+		} else if( parentPort() instanceof InputPort ) {
+			prop = new Properties();
+			prop.put( "bootstrap.servers", bootstrapServers );
+			prop.setProperty( "kafka.topic.name", kafkaTopicName );
+			KafkaProducer< String, byte[] > producer =
+				new KafkaProducer<>( this.prop, new StringSerializer(), new ByteArraySerializer() );
+			ProducerRecord< String, byte[] > record =
+				new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ),
+					this.data.toString().getBytes( StandardCharsets.UTF_8 ) );
+			producer.send( (record) );
+			producer.close();
+
 		} else {
 			throw new IOException( "Port is of unexpected type!" );
 		}
-		// Input Port to cambe back to sender
+		// Input Port to came back to sender
 
 	}
 

@@ -52,7 +52,7 @@
       <module name="http" target="1.8" />
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
-      <module name="jolie" target="1.5" />
+      <module name="jolie" target="11" />
       <module name="jolie (1)" target="11" />
       <module name="jolie-cli" target="11" />
       <module name="jolie-distribution" target="1.5" />
@@ -68,8 +68,8 @@
       <module name="jolie2wsdl" target="1.8" />
       <module name="joliec" target="1.8" />
       <module name="jsonrpc" target="1.8" />
-      <module name="kafka" target="11" />
-      <module name="launchers" target="1.5" />
+      <module name="kafka" target="1.8" />
+      <module name="launchers" target="11" />
       <module name="libjolie" target="11" />
       <module name="local" target="1.8" />
       <module name="localsocket" target="1.8" />
@@ -80,7 +80,7 @@
       <module name="soaps" target="1.8" />
       <module name="sodep" target="1.8" />
       <module name="sodeps" target="1.8" />
-      <module name="test" target="1.5" />
+      <module name="test" target="11" />
       <module name="WSTest" target="1.8" />
       <module name="xmlrpc" target="1.8" />
       <module name="xsom" target="1.8" />
