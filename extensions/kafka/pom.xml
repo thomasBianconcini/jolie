@@ -4,7 +4,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-   <!-- -->
     <parent>
     <groupId>org.jolie-lang</groupId>
     <artifactId>distribution</artifactId>
@@ -12,13 +11,11 @@
     <version>1.0.0</version>
     </parent>
 
-    <!-- -->
-
     <groupId>org.jolie-lang</groupId>
     <artifactId>kafka</artifactId>
-    <version>1.0.0</version>
+    <version>${jolie.version}</version>
     <packaging>jar</packaging>
-    <properties>    <!-- che tipo di java uso -->
+    <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -55,7 +52,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>org.jolie-lang</groupId>
-                                    <artifactId>jolie</artifactId>
+                                    <artifactId>${project.artifactId}</artifactId>
                                     <version>${jolie.version}</version>
                                     <type>jar</type>
                                     <destFileName>${project.artifactId}.jar</destFileName>
@@ -72,13 +69,6 @@
                         </goals>
                         <configuration>
                             <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.apache.kafka</groupId>
-                                    <artifactId>kafka_2.13</artifactId>
-                                    <version>3.1.0</version>
-                                    <type>jar</type>
-                                    <destFileName>kakfa_2.jar</destFileName>
-                                </artifactItem>
                                 <artifactItem>
                                     <groupId>org.apache.kafka</groupId>
                                     <artifactId>kafka-clients</artifactId>

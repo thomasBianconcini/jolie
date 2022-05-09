@@ -21,7 +21,7 @@ public class KafkaCommListener extends CommListener {
 	private final Object lock = new Object();
 	private final String kafkaTopicName;
 	private final String bootstrapServers;
-	private Properties prop;
+	private final Properties prop = new Properties();
 
 	public KafkaCommListener( Interpreter interpreter, CommProtocolFactory protocolFactory, InputPort inputPort )
 		throws IOException {

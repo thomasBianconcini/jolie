@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-@AndJarDeps( { "kakfa_2.jar", "kafka-client.jar", "slf4j-api.jar" } )
+@AndJarDeps( { "kafka-client.jar", "slf4j-api.jar" } )
 public class KafkaCommChannelFactory extends CommChannelFactory {
 	protected KafkaCommChannelFactory( CommCore commCore ) {
 		super( commCore );
