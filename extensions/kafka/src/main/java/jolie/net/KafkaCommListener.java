@@ -9,7 +9,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
@@ -18,50 +17,43 @@ import java.util.logging.Logger;
 
 
 public class KafkaCommListener extends CommListener {
-	private final Object lock = new Object();
 	private final String kafkaTopicName;
 	private final String bootstrapServers;
+	private final String id;
 	private final Properties prop = new Properties();
+	final CommProtocol protocol;
+	private final KafkaCommChannel kafkaCommChannel;
+	KafkaConsumer< String, byte[] > consumer;
 
 	public KafkaCommListener( Interpreter interpreter, CommProtocolFactory protocolFactory, InputPort inputPort )
 		throws IOException {
 		super( interpreter, protocolFactory, inputPort );
 		kafkaTopicName = locationAttributes().get( "topic" );
 		bootstrapServers = locationAttributes().get( "bootstrap" );
-		prop.put( "bootstrap.servers", kafkaTopicName );
-		prop.put( "group.id", bootstrapServers );
-		prop.put( "auto.commit.interval.ms", "1000" );
+		id = locationAttributes().get( "id" );
+		prop.put( "bootstrap.servers", bootstrapServers );
+		prop.put( "group.id", id );
+		prop.put( "auto.commit.interval.ms", "100000000" );
 		prop.put( "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer" );
-		prop.put( "value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer" );
-		final CommProtocol protocol = createProtocol();
-		try( KafkaConsumer< String, String > consumer = new KafkaConsumer<>( prop ); ) {
-			consumer.subscribe( Arrays.asList( kafkaTopicName ) );
-			ConsumerRecords< String, String > records = consumer.poll( 1000L );
-			KafkaCommChannel kafkaCommChannel = new KafkaCommChannel( inputPort.location(), protocol );
-			kafkaCommChannel.setParentInputPort( inputPort );
-			String message = "";
-			for( ConsumerRecord< String, String > record : records ) {
-				message = message + record.value();
-			}
-			byte[] byteToSend = message.getBytes( StandardCharsets.UTF_8 );
-			KafkaMessage msg = new KafkaMessage( byteToSend );
-			kafkaCommChannel.setData( msg );
-			interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
-		}
+		prop.put( "value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer" );
+		this.protocol = createProtocol();
+		this.consumer = new KafkaConsumer<>( prop );
+		consumer.subscribe( Arrays.asList( kafkaTopicName ) );
+		kafkaCommChannel = new KafkaCommChannel( inputPort.location(), protocol );
+		kafkaCommChannel.setParentInputPort( inputPort );
 	}
 
 	@Override
 	public void run() {
-		while( true ) {
-			try {
-				synchronized( lock ) {
-					while( true ) {
-						lock.wait();
-					}
-				}
-			} catch( InterruptedException ex ) {
-				Logger.getLogger( KafkaCommListener.class.getName() ).log( Level.SEVERE, null, ex );
-			}
+		ConsumerRecords< String, byte[] > records = consumer.poll( 10L );
+		while( records.isEmpty() ) {
+			records = consumer.poll( 10L );
+		}
+		for( ConsumerRecord< String, byte[] > record : records ) {
+			byte[] byteToSend = record.value();
+			KafkaMessage msg = new KafkaMessage( byteToSend );
+			kafkaCommChannel.setData( msg );
+			interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
 		}
 	}
 

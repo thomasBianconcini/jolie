@@ -12,7 +12,7 @@
             <properties>
                 <exec.vmArgs></exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>-l /usr/lib/jolie/lib:/usr/lib/jolie/javaServices/*:/usr/lib/jolie/extensions/* -i /usr/lib/jolie/include main.ol</exec.appArgs>
+                <exec.appArgs>-l /usr/lib/jolie/lib:/usr/lib/jolie/javaServices/*:/usr/lib/jolie/extensions/*:/home/thomas/Desktop/jolie/dist/* -i /usr/lib/jolie/include main.ol</exec.appArgs>
                 <exec.mainClass>jolie.Jolie</exec.mainClass>
                 <exec.executable>java</exec.executable>
                 <exec.workingdir>/home/thomas/Desktop</exec.workingdir>
@@ -30,7 +30,7 @@
             <properties>
                 <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.appArgs>-l /usr/lib/jolie/lib:/usr/lib/jolie/javaServices/*:/usr/lib/jolie/extensions/* -i /usr/lib/jolie/include main.ol</exec.appArgs>
+                <exec.appArgs>-l /usr/lib/jolie/lib:/usr/lib/jolie/javaServices/*:/usr/lib/jolie/extensions/*:/home/thomas/Desktop/jolie/dist/* -i /usr/lib/jolie/include main.ol</exec.appArgs>
                 <exec.mainClass>jolie.Jolie</exec.mainClass>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
@@ -51,7 +51,7 @@
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.mainClass>jolie.Jolie</exec.mainClass>
                 <exec.executable>java</exec.executable>
-                <exec.appArgs>-l /usr/lib/jolie/lib:/usr/lib/jolie/javaServices/*:/usr/lib/jolie/extensions/* -i /usr/lib/jolie/include main.ol</exec.appArgs>
+                <exec.appArgs>-l /usr/lib/jolie/lib:/usr/lib/jolie/javaServices/*:/usr/lib/jolie/extensions/*:/home/thomas/Desktop/jolie/dist/* -i /usr/lib/jolie/include main.ol</exec.appArgs>
                 <exec.workingdir>/home/thomas/Desktop</exec.workingdir>
             </properties>
         </action>

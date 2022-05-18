@@ -49,17 +49,18 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	@Override
 	protected CommMessage recvImpl() throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-		CommMessage returnMessage;
 		// if we are an Input Port
 		if( data != null ) {
-			returnMessage = protocol().recv( new ByteArrayInputStream( data.body ), ostream );
-			return returnMessage;
+			ByteArrayInputStream istream = new ByteArrayInputStream( data.body );
+			return protocol().recv( istream, ostream );
+
 		}
 		// if we are an Outputport
 		if( message != null ) {
-			returnMessage = CommMessage.createResponse( message, Value.UNDEFINED_VALUE );
+			CommMessage msg = message;
 			message = null;
-			return returnMessage;
+			return CommMessage.createResponse( msg, Value.UNDEFINED_VALUE );
+
 		}
 		throw new IOException( "Wrong context for receive!" );
 	}
@@ -68,9 +69,8 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	@Override
 	protected void sendImpl( CommMessage message ) throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
-		protocol().send( ostream, message, null );
 		this.message = message;
-
+		protocol().send( ostream, message, null );
 		// OutputPort
 		if( parentPort() instanceof OutputPort ) {
 			prop = new Properties();
@@ -80,7 +80,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 				new KafkaProducer<>( this.prop, new StringSerializer(), new ByteArraySerializer() );
 			ProducerRecord< String, byte[] > record =
 				new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ),
-					this.message.toString().getBytes( StandardCharsets.UTF_8 ) );
+					ostream.toByteArray() );
 			producer.send( (record) );
 			producer.close();
 
@@ -99,6 +99,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		} else {
 			throw new IOException( "Port is of unexpected type!" );
 		}
+
 		// Input Port to came back to sender
 
 	}
@@ -107,7 +108,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		return KafkaConnectionHandler.getConnection( location ).getLocationAttributes();
 	}
 
-	public void setData( KafkaMessage msg ) {
+	public void setData( KafkaMessage data ) {
 		this.data = data;
 	}
 
