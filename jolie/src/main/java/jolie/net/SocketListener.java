@@ -50,7 +50,6 @@ public class SocketListener extends CommListener {
 			interpreter,
 			protocolFactory,
 			inputPort );
-
 		serverChannel = ServerSocketChannel.open();
 		final ServerSocket socket = serverChannel.socket();
 		try {

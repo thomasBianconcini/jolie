@@ -33,6 +33,11 @@
         <module name="btl2cap" />
         <module name="jolie (1)" />
         <module name="sodeps" />
+<<<<<<< HEAD
+=======
+        <module name="jolie-uri" />
+        <module name="jolie" />
+>>>>>>> upstream/master
         <module name="javascript" />
         <module name="kafka" />
         <module name="jolie2surface" />
@@ -60,6 +65,7 @@
       <module name="jolie-java" target="1.8" />
       <module name="jolie-js" target="1.8" />
       <module name="jolie-ssl" target="1.8" />
+      <module name="jolie-uri" target="1.8" />
       <module name="jolie-xml" target="1.8" />
       <module name="jolie2dummy" target="1.8" />
       <module name="jolie2java" target="1.8" />

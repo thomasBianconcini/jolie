@@ -1,8 +1,9 @@
 package jolie.net;
 
-import jolie.net.ports.InputPort;
+import jolie.Interpreter;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.OneWayOperation;
 import jolie.runtime.Value;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -13,7 +14,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 
@@ -37,7 +37,6 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		this.message = null;
 		kafkaTopicName = locationAttributes().get( "topic" );
 		bootstrapServers = locationAttributes().get( "bootstrap" );
-		// valutare altre proprietà da aggiungere
 		setToBeClosed( false );
 	}
 
@@ -71,7 +70,6 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		this.message = message;
 		protocol().send( ostream, message, null );
-		// OutputPort
 		if( parentPort() instanceof OutputPort ) {
 			prop = new Properties();
 			prop.put( "bootstrap.servers", bootstrapServers );
@@ -84,24 +82,22 @@ public class KafkaCommChannel extends StreamingCommChannel {
 			producer.send( (record) );
 			producer.close();
 
-		} else if( parentPort() instanceof InputPort ) {
-			prop = new Properties();
-			prop.put( "bootstrap.servers", bootstrapServers );
-			prop.setProperty( "kafka.topic.name", kafkaTopicName );
-			KafkaProducer< String, byte[] > producer =
-				new KafkaProducer<>( this.prop, new StringSerializer(), new ByteArraySerializer() );
-			ProducerRecord< String, byte[] > record =
-				new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ),
-					this.data.toString().getBytes( StandardCharsets.UTF_8 ) );
-			producer.send( (record) );
-			producer.close();
-
-		} else {
-			throw new IOException( "Port is of unexpected type!" );
 		}
-
-		// Input Port to came back to sender
-
+		// insirisci condizione oneway o reqresp
+		/*
+		 * else if( parentPort() instanceof InputPort ) { prop = new Properties(); prop.put(
+		 * "bootstrap.servers", bootstrapServers ); prop.setProperty( "kafka.topic.name", kafkaTopicName );
+		 * KafkaProducer< String, byte[] > producer = new KafkaProducer<>( this.prop, new
+		 * StringSerializer(), new ByteArraySerializer() ); ProducerRecord< String, byte[] > record = new
+		 * ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), this.data.toString().getBytes(
+		 * StandardCharsets.UTF_8 ) ); producer.send( (record) ); producer.close();
+		 * 
+		 * }
+		 */
+		/*
+		 * else { throw new IOException( "Port is of unexpected type!" ); }
+		 */
+		ostream.flush();
 	}
 
 	public Map< String, String > locationAttributes() throws IOException {

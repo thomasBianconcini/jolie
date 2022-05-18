@@ -45,17 +45,21 @@ public class KafkaCommListener extends CommListener {
 
 	@Override
 	public void run() {
-		ConsumerRecords< String, byte[] > records = consumer.poll( 10L );
-		while( records.isEmpty() ) {
-			records = consumer.poll( 10L );
-		}
-		for( ConsumerRecord< String, byte[] > record : records ) {
-			byte[] byteToSend = record.value();
-			KafkaMessage msg = new KafkaMessage( byteToSend );
-			kafkaCommChannel.setData( msg );
-			interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
+		while( true ) {
+			ConsumerRecords< String, byte[] > records = consumer.poll( 10L );
+			while( records.isEmpty() ) {
+				records = consumer.poll( 10L );
+			}
+			for( ConsumerRecord< String, byte[] > record : records ) {
+				byte[] byteToSend = record.value();
+				KafkaMessage msg = new KafkaMessage( byteToSend );
+				kafkaCommChannel.setData( msg );
+				interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
+
+			}
 		}
 	}
+
 
 	public Map< String, String > locationAttributes() throws IOException {
 		return KafkaConnectionHandler.getConnection( inputPort().location() ).getLocationAttributes();
@@ -65,6 +69,7 @@ public class KafkaCommListener extends CommListener {
 	public void shutdown() {
 		try {
 			// Close current connection.
+			consumer.close();
 			KafkaConnectionHandler.closeConnection( inputPort().location() );
 		} catch( IOException ex ) {
 			Logger.getLogger( KafkaConnectionHandler.class.getName() ).log( Level.WARNING, null, ex );
