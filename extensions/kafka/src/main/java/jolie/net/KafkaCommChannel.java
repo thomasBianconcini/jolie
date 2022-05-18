@@ -1,9 +1,7 @@
 package jolie.net;
 
-import jolie.Interpreter;
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
-import jolie.runtime.OneWayOperation;
 import jolie.runtime.Value;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
