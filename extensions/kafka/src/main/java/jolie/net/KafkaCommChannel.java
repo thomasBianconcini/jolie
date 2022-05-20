@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Properties;
 
 public class KafkaCommChannel extends StreamingCommChannel {
-
 	// General
 	private final URI location;
 	// Input
@@ -24,14 +23,12 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	// Output
 	private CommMessage message;
 	private Properties prop;
-
 	final String kafkaTopicName;
 	final String bootstrapServers;
 
 	public KafkaCommChannel( URI location, CommProtocol protocol ) throws IOException {
 		super( location, protocol );
 		this.location = location;
-		// add parametri
 		this.message = null;
 		kafkaTopicName = locationAttributes().get( "topic" );
 		bootstrapServers = locationAttributes().get( "bootstrap" );
@@ -62,12 +59,12 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		throw new IOException( "Wrong context for receive!" );
 	}
 
-
 	@Override
 	protected void sendImpl( CommMessage message ) throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		this.message = message;
 		protocol().send( ostream, message, null );
+		// creation of the Kafka Consumer
 		if( parentPort() instanceof OutputPort ) {
 			prop = new Properties();
 			prop.put( "bootstrap.servers", bootstrapServers );
@@ -79,9 +76,9 @@ public class KafkaCommChannel extends StreamingCommChannel {
 					ostream.toByteArray() );
 			producer.send( (record) );
 			producer.close();
-
 		}
-		// insirisci condizione oneway o reqresp
+		ostream.flush();
+		// RequestResponse
 		/*
 		 * else if( parentPort() instanceof InputPort ) { prop = new Properties(); prop.put(
 		 * "bootstrap.servers", bootstrapServers ); prop.setProperty( "kafka.topic.name", kafkaTopicName );
@@ -95,7 +92,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		/*
 		 * else { throw new IOException( "Port is of unexpected type!" ); }
 		 */
-		ostream.flush();
+
 	}
 
 	public Map< String, String > locationAttributes() throws IOException {

@@ -9,12 +9,12 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 public class KafkaCommListener extends CommListener {
 	private final String kafkaTopicName;
@@ -24,6 +24,7 @@ public class KafkaCommListener extends CommListener {
 	final CommProtocol protocol;
 	private final KafkaCommChannel kafkaCommChannel;
 	KafkaConsumer< String, byte[] > consumer;
+	private boolean keepRun = true;
 
 	public KafkaCommListener( Interpreter interpreter, CommProtocolFactory protocolFactory, InputPort inputPort )
 		throws IOException {
@@ -33,10 +34,11 @@ public class KafkaCommListener extends CommListener {
 		id = locationAttributes().get( "id" );
 		prop.put( "bootstrap.servers", bootstrapServers );
 		prop.put( "group.id", id );
-		prop.put( "auto.commit.interval.ms", "100000000" );
+		prop.put( "auto.commit.interval.ms", "1000" );
 		prop.put( "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer" );
 		prop.put( "value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer" );
 		this.protocol = createProtocol();
+		// Creation of Kafka Cosumer
 		this.consumer = new KafkaConsumer<>( prop );
 		consumer.subscribe( Arrays.asList( kafkaTopicName ) );
 		kafkaCommChannel = new KafkaCommChannel( inputPort.location(), protocol );
@@ -45,22 +47,23 @@ public class KafkaCommListener extends CommListener {
 
 	@Override
 	public void run() {
-		while( true ) {
-			ConsumerRecords< String, byte[] > records = consumer.poll( 10L );
+		while( keepRun ) {
+			ConsumerRecords< String, byte[] > records = consumer.poll( Duration.ofSeconds( 1 ) );
+			// wait until a message in the topic
 			while( records.isEmpty() ) {
-				records = consumer.poll( 10L );
+				records = consumer.poll( Duration.ofSeconds( 1 ) );
 			}
 			for( ConsumerRecord< String, byte[] > record : records ) {
+				// for each message in the topic
 				byte[] byteToSend = record.value();
 				KafkaMessage msg = new KafkaMessage( byteToSend );
 				kafkaCommChannel.setData( msg );
 				interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
-
 			}
 		}
 	}
 
-
+	// return the map of the attributes
 	public Map< String, String > locationAttributes() throws IOException {
 		return KafkaConnectionHandler.getConnection( inputPort().location() ).getLocationAttributes();
 	}
@@ -69,6 +72,7 @@ public class KafkaCommListener extends CommListener {
 	public void shutdown() {
 		try {
 			// Close current connection.
+			keepRun = false;
 			consumer.close();
 			KafkaConnectionHandler.closeConnection( inputPort().location() );
 		} catch( IOException ex ) {
