@@ -25,6 +25,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	private Properties prop;
 	final String kafkaTopicName;
 	final String bootstrapServers;
+	final String tipe;
 
 	public KafkaCommChannel( URI location, CommProtocol protocol ) throws IOException {
 		super( location, protocol );
@@ -32,6 +33,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		this.message = null;
 		kafkaTopicName = locationAttributes().get( "topic" );
 		bootstrapServers = locationAttributes().get( "bootstrap" );
+		tipe = locationAttributes().get( "type" );
 		setToBeClosed( false );
 	}
 
@@ -69,30 +71,24 @@ public class KafkaCommChannel extends StreamingCommChannel {
 			prop = new Properties();
 			prop.put( "bootstrap.servers", bootstrapServers );
 			prop.setProperty( "kafka.topic.name", kafkaTopicName );
-			KafkaProducer< String, byte[] > producer =
-				new KafkaProducer<>( this.prop, new StringSerializer(), new ByteArraySerializer() );
-			ProducerRecord< String, byte[] > record =
-				new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ),
-					ostream.toByteArray() );
-			producer.send( (record) );
-			producer.close();
+			if( tipe.equals( "byte" ) ) {
+				KafkaProducer< String, byte[] > producer =
+					new KafkaProducer<>( this.prop, new StringSerializer(), new ByteArraySerializer() );
+				ProducerRecord< String, byte[] > record =
+					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ),
+						ostream.toByteArray() );
+				producer.send( (record) );
+				producer.close();
+			} else if( tipe.equals( "string" ) ) {
+				KafkaProducer< String, String > producer =
+					new KafkaProducer<>( this.prop, new StringSerializer(), new StringSerializer() );
+				ProducerRecord< String, String > record =
+					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), ostream.toString() );
+				producer.send( (record) );
+				producer.close();
+			}
 		}
 		ostream.flush();
-		// RequestResponse
-		/*
-		 * else if( parentPort() instanceof InputPort ) { prop = new Properties(); prop.put(
-		 * "bootstrap.servers", bootstrapServers ); prop.setProperty( "kafka.topic.name", kafkaTopicName );
-		 * KafkaProducer< String, byte[] > producer = new KafkaProducer<>( this.prop, new
-		 * StringSerializer(), new ByteArraySerializer() ); ProducerRecord< String, byte[] > record = new
-		 * ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), this.data.toString().getBytes(
-		 * StandardCharsets.UTF_8 ) ); producer.send( (record) ); producer.close();
-		 * 
-		 * }
-		 */
-		/*
-		 * else { throw new IOException( "Port is of unexpected type!" ); }
-		 */
-
 	}
 
 	public Map< String, String > locationAttributes() throws IOException {
