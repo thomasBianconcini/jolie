@@ -41,11 +41,11 @@ public class KafkaCommChannel extends StreamingCommChannel {
 
 	@Override
 	protected void closeImpl() throws IOException {
-		// ps.close( tipe );
 		if( tipe.equals( "byte" ) )
 			byteProducer.close();
 		else if( tipe.equals( "string" ) )
 			stringProducer.close();
+
 		KafkaConnectionHandler.closeConnection( location );
 	}
 

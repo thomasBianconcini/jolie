@@ -24,7 +24,10 @@ public class KafkaConnectionHandler {
 
 	// Close a connection
 	public static void closeConnection( URI location ) throws IOException {
-		CONNECTIONS.get( location ).close();
-		CONNECTIONS.remove( location );
+		// if there are two service in on kafkaCommChannel
+		if( CONNECTIONS.get( location ) != null ) {
+			CONNECTIONS.get( location ).close();
+			CONNECTIONS.remove( location );
+		}
 	}
 }
