@@ -5,19 +5,15 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.Value;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.io.*;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class KafkaCommChannel extends StreamingCommChannel {
 	// General
 	private final URI location;
+	private final List< Long > responseWaiters = new ArrayList<>();
 	// Input
 	private KafkaMessage data;
 	// Output
@@ -26,10 +22,12 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	final String kafkaTopicName;
 	final String bootstrapServers;
 	final String tipe;
+	private static ProducerSingleton ps;
+	private volatile boolean keepRun = false;
 
+	KafkaProducer< String, byte[] > byteProducer;
+	KafkaProducer< String, String > stringProducer;
 	BufferedWriter br = new BufferedWriter( new FileWriter( "/home/thomas/Desktop/temp.txt" ) );
-
-	private final List< Long > responseWaiters = new ArrayList<>();
 
 	public KafkaCommChannel( URI location, CommProtocol protocol ) throws IOException {
 		super( location, protocol );
@@ -43,6 +41,11 @@ public class KafkaCommChannel extends StreamingCommChannel {
 
 	@Override
 	protected void closeImpl() throws IOException {
+		// ps.close( tipe );
+		if( tipe.equals( "byte" ) )
+			byteProducer.close();
+		else if( tipe.equals( "string" ) )
+			stringProducer.close();
 		KafkaConnectionHandler.closeConnection( location );
 	}
 
@@ -53,22 +56,17 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		if( data != null ) {
 			ByteArrayInputStream istream = new ByteArrayInputStream( data.body );
 			return protocol().recv( istream, ostream );
-
 		}
 		// if we are an Outputport
 		if( message != null ) {
 			CommMessage msg = message;
-			// boolean trovato = false;
-			/*
-			 * while( !trovato ) { for( Long l : responseWaiters ) { System.out.println( "long = " + l );
-			 * System.out.println( "id = " + message.getId() ); System.out.println( "long = " + l ); if(
-			 * l.doubleValue() == message.getId() ) { responseWaiters.remove( l ); System.out.println( "rec" +
-			 * message.requestId() + "lunghezza =" + responseWaiters.size() ); br.append( (char)
-			 * message.requestId() ); message = null; return CommMessage.createResponse( msg,
-			 * Value.UNDEFINED_VALUE ); } } }
-			 */
-			System.out.println( "rec" + message.requestId() + "lunghezza =" + responseWaiters.size() );
-			br.append( (char) message.requestId() );
+			while( !keepRun ) {
+				for( long l : responseWaiters ) {
+					if( l == message.requestId() )
+						keepRun = true;
+				}
+			}
+			responseWaiters.remove( message.requestId() );
 			message = null;
 			return CommMessage.createResponse( msg, Value.UNDEFINED_VALUE );
 		}
@@ -86,24 +84,19 @@ public class KafkaCommChannel extends StreamingCommChannel {
 			prop.put( "bootstrap.servers", bootstrapServers );
 			prop.setProperty( "kafka.topic.name", kafkaTopicName );
 			if( tipe.equals( "byte" ) ) {
-				KafkaProducer< String, byte[] > producer =
-					new KafkaProducer<>( this.prop, new StringSerializer(), new ByteArraySerializer() );
+				ps = ProducerSingleton.getInstance( prop, tipe );
+				byteProducer = ps.getByteProducer();
 				ProducerRecord< String, byte[] > record =
-					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ),
-						ostream.toByteArray() );
-				producer.send( (record) );
-				producer.close();
+					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), ostream.toByteArray() );
+				byteProducer.send( (record) );
 			} else if( tipe.equals( "string" ) ) {
-				KafkaProducer< String, String > producer =
-					new KafkaProducer<>( this.prop, new StringSerializer(), new StringSerializer() );
+				ps = ProducerSingleton.getInstance( prop, tipe );
+				stringProducer = ps.getStringProducer();
 				ProducerRecord< String, String > record =
 					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), ostream.toString() );
-				producer.send( (record) );
-				producer.close();
+				stringProducer.send( (record) );
 			}
-			br.append( (char) message.requestId() );
 		}
-
 		responseWaiters.add( message.requestId() );
 		ostream.flush();
 	}
@@ -115,5 +108,4 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	public void setData( KafkaMessage data ) {
 		this.data = data;
 	}
-
 }

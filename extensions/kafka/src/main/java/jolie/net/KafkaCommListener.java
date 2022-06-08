@@ -101,7 +101,13 @@ public class KafkaCommListener extends CommListener {
 				}
 			}
 		}
-		consumerByte.close();
+		if( tipe.equals( "byte" ) ) {
+			consumerByte.unsubscribe();
+			consumerByte.close();
+		} else if( tipe.equals( "string" ) ) {
+			consumerString.unsubscribe();
+			consumerString.close();
+		}
 		try {
 			KafkaConnectionHandler.closeConnection( inputPort().location() );
 		} catch( IOException e ) {
