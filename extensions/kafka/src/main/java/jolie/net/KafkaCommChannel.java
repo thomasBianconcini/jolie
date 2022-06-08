@@ -66,6 +66,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 						keepRun = true;
 				}
 			}
+			keepRun = false;
 			responseWaiters.remove( message.requestId() );
 			message = null;
 			return CommMessage.createResponse( msg, Value.UNDEFINED_VALUE );
