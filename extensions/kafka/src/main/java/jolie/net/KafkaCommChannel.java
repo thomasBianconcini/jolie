@@ -20,7 +20,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	private Properties prop;
 	final String kafkaTopicName;
 	final String bootstrapServers;
-	final String tipe;
+	final String type;
 	private static ProducerSingleton ps;
 	private volatile boolean keepRun = false;
 
@@ -34,15 +34,15 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		this.message = null;
 		kafkaTopicName = locationAttributes().get( "topic" );
 		bootstrapServers = locationAttributes().get( "bootstrap" );
-		tipe = locationAttributes().get( "type" );
+		type = locationAttributes().get( "type" );
 		setToBeClosed( false );
 	}
 
 	@Override
 	protected void closeImpl() throws IOException {
-		if( tipe.equals( "byte" ) )
+		if( type.equals( "byte" ) )
 			byteProducer.close();
-		else if( tipe.equals( "string" ) )
+		else if( type.equals( "string" ) )
 			stringProducer.close();
 		KafkaConnectionHandler.closeConnection( location );
 	}
@@ -83,14 +83,14 @@ public class KafkaCommChannel extends StreamingCommChannel {
 			prop = new Properties();
 			prop.put( "bootstrap.servers", bootstrapServers );
 			prop.setProperty( "kafka.topic.name", kafkaTopicName );
-			if( tipe.equals( "byte" ) ) {
-				ps = ProducerSingleton.getInstance( prop, tipe );
+			if( type.equals( "byte" ) ) {
+				ps = ProducerSingleton.getInstance( prop, type );
 				byteProducer = ps.getByteProducer();
 				ProducerRecord< String, byte[] > record =
 					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), ostream.toByteArray() );
 				byteProducer.send( (record) );
-			} else if( tipe.equals( "string" ) ) {
-				ps = ProducerSingleton.getInstance( prop, tipe );
+			} else if( type.equals( "string" ) ) {
+				ps = ProducerSingleton.getInstance( prop, type );
 				stringProducer = ps.getStringProducer();
 				ProducerRecord< String, String > record =
 					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), ostream.toString() );

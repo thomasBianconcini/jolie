@@ -89,7 +89,7 @@
         <dependency>
             <groupId>org.jolie-lang</groupId>
             <artifactId>jolie</artifactId>
-            <version>1.10.6-git</version>
+            <version>${jolie.version}</version>
             <scope>compile</scope>
         </dependency>
 
