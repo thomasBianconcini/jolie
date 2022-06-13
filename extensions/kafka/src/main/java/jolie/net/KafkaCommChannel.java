@@ -5,7 +5,6 @@ import jolie.net.protocols.CommProtocol;
 import jolie.runtime.Value;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-
 import java.io.*;
 import java.net.URI;
 import java.util.*;
@@ -45,7 +44,6 @@ public class KafkaCommChannel extends StreamingCommChannel {
 			byteProducer.close();
 		else if( tipe.equals( "string" ) )
 			stringProducer.close();
-
 		KafkaConnectionHandler.closeConnection( location );
 	}
 
@@ -55,6 +53,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		// if we are an Input Port
 		if( data != null ) {
 			ByteArrayInputStream istream = new ByteArrayInputStream( data.body );
+			data = null;
 			return protocol().recv( istream, ostream );
 		}
 		// if we are an Outputport
@@ -108,5 +107,9 @@ public class KafkaCommChannel extends StreamingCommChannel {
 
 	public void setData( KafkaMessage data ) {
 		this.data = data;
+	}
+
+	public KafkaMessage getData() {
+		return data;
 	}
 }

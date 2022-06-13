@@ -26,13 +26,6 @@ public class ProducerSingleton {
 		return instance;
 	}
 
-
-	/*
-	 * public static void close( String tipe ) { if( tipe.equals( "byte" ) ) { byteProducer.close(); }
-	 * else if( tipe.equals( "string" ) ) { stringProducer.close(); } }
-	 */
-
-
 	public KafkaProducer< String, byte[] > getByteProducer() {
 		return byteProducer;
 	}

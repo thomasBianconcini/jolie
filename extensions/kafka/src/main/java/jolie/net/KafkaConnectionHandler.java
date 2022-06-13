@@ -13,7 +13,6 @@ public class KafkaConnectionHandler {
 		if( !CONNECTIONS.containsKey( location ) ) {
 			setConnection( location );
 		}
-
 		return CONNECTIONS.get( location );
 	}
 

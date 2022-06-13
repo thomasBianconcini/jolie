@@ -78,11 +78,14 @@ public class KafkaCommListener extends CommListener {
 				if( keepRun ) {
 					for( ConsumerRecord< String, byte[] > record : records ) {
 						// for each message in the topic
+						while( kafkaCommChannel.getData() != null ) {
+							System.out.println( "attendo" );
+						}
 						byte[] byteToSend = record.value();
 						KafkaMessage msg = new KafkaMessage( byteToSend );
 						kafkaCommChannel.setData( msg );
 						interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
-						// }
+						//
 					}
 				}
 			} else if( tipe.equals( "string" ) ) {
