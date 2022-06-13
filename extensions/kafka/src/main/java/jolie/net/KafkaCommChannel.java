@@ -15,7 +15,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	private final URI location;
 	private final List< Long > responseWaiters = new ArrayList<>();
 	// Input
-	private ArrayDeque <ByteArray> data = new ArrayDeque<>();
+	private final ArrayDeque< ByteArray > data = new ArrayDeque<>();
 	// Output
 	private CommMessage message;
 	private Properties prop;
@@ -52,12 +52,11 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	protected CommMessage recvImpl() throws IOException {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		// if we are an Input Port
-		if( data != null ) {
-
+		if( !data.isEmpty() ) {
 			ByteArrayInputStream istream = new ByteArrayInputStream( data.pop().getBytes() );
-			data = null;
 			return protocol().recv( istream, ostream );
 		}
+
 		// if we are an Outputport
 		if( message != null ) {
 			CommMessage msg = message;
@@ -108,7 +107,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	}
 
 	public void addData( ByteArray input ) {
-		data.add(input);
+		data.add( input );
 	}
 
 

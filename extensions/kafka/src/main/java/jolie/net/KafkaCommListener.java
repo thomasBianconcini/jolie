@@ -79,8 +79,7 @@ public class KafkaCommListener extends CommListener {
 				if( keepRun ) {
 					for( ConsumerRecord< String, byte[] > record : records ) {
 						// for each message in the topic
-
-						kafkaCommChannel.addData(new ByteArray(record.value()));
+						kafkaCommChannel.addData( new ByteArray( record.value() ) );
 						interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
 						//
 					}
@@ -90,15 +89,12 @@ public class KafkaCommListener extends CommListener {
 				while( records.isEmpty() && keepRun ) {
 					records = consumerString.poll( Duration.ofSeconds( 1 ) );
 				}
-	/*			if( keepRun ) {
-					for( ConsumerRecord< String, String > record : records ) {
-						// for each message in the topic
-						KafkaMessage msg = new KafkaMessage( record.value().getBytes() );
-						kafkaCommChannel.setData( msg );
-						interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
-						// }
-					}
-				}*/
+				/*
+				 * if( keepRun ) { for( ConsumerRecord< String, String > record : records ) { // for each message in
+				 * the topic KafkaMessage msg = new KafkaMessage( record.value().getBytes() );
+				 * kafkaCommChannel.setData( msg ); interpreter().commCore().scheduleReceive( kafkaCommChannel,
+				 * inputPort() ); // } } }
+				 */
 			}
 		}
 		if( tipe.equals( "byte" ) ) {
