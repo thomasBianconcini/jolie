@@ -4,6 +4,7 @@ import jolie.Interpreter;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.ports.InputPort;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.ByteArray;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -78,12 +79,8 @@ public class KafkaCommListener extends CommListener {
 				if( keepRun ) {
 					for( ConsumerRecord< String, byte[] > record : records ) {
 						// for each message in the topic
-						while( kafkaCommChannel.getData() != null ) {
-							System.out.println( "attendo" );
-						}
-						byte[] byteToSend = record.value();
-						KafkaMessage msg = new KafkaMessage( byteToSend );
-						kafkaCommChannel.setData( msg );
+
+						kafkaCommChannel.addData(new ByteArray(record.value()));
 						interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
 						//
 					}
@@ -93,7 +90,7 @@ public class KafkaCommListener extends CommListener {
 				while( records.isEmpty() && keepRun ) {
 					records = consumerString.poll( Duration.ofSeconds( 1 ) );
 				}
-				if( keepRun ) {
+	/*			if( keepRun ) {
 					for( ConsumerRecord< String, String > record : records ) {
 						// for each message in the topic
 						KafkaMessage msg = new KafkaMessage( record.value().getBytes() );
@@ -101,7 +98,7 @@ public class KafkaCommListener extends CommListener {
 						interpreter().commCore().scheduleReceive( kafkaCommChannel, inputPort() );
 						// }
 					}
-				}
+				}*/
 			}
 		}
 		if( tipe.equals( "byte" ) ) {

@@ -2,6 +2,7 @@ package jolie.net;
 
 import jolie.net.ports.OutputPort;
 import jolie.net.protocols.CommProtocol;
+import jolie.runtime.ByteArray;
 import jolie.runtime.Value;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -14,7 +15,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 	private final URI location;
 	private final List< Long > responseWaiters = new ArrayList<>();
 	// Input
-	private KafkaMessage data;
+	private ArrayDeque <ByteArray> data = new ArrayDeque<>();
 	// Output
 	private CommMessage message;
 	private Properties prop;
@@ -52,7 +53,8 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 		// if we are an Input Port
 		if( data != null ) {
-			ByteArrayInputStream istream = new ByteArrayInputStream( data.body );
+
+			ByteArrayInputStream istream = new ByteArrayInputStream( data.pop().getBytes() );
 			data = null;
 			return protocol().recv( istream, ostream );
 		}
@@ -105,11 +107,9 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		return KafkaConnectionHandler.getConnection( location ).getLocationAttributes();
 	}
 
-	public void setData( KafkaMessage data ) {
-		this.data = data;
+	public void addData( ByteArray input ) {
+		data.add(input);
 	}
 
-	public KafkaMessage getData() {
-		return data;
-	}
+
 }
