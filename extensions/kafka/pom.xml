@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-    <groupId>org.jolie-lang</groupId>
-    <artifactId>distribution</artifactId>
-    <relativePath>../../pom.xml</relativePath>
-    <version>1.0.0</version>
+        <groupId>org.jolie-lang</groupId>
+        <artifactId>distribution</artifactId>
+        <relativePath>../../pom.xml</relativePath>
+        <version>1.0.0</version>
     </parent>
 
     <groupId>org.jolie-lang</groupId>
@@ -31,8 +31,10 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
+                            <Class-Path>lib/kafka-clients.jar lib/slf4j-api.jar</Class-Path>
                             <X-JOLIE-ChannelExtension>kafka:jolie.net.KafkaCommChannelFactory</X-JOLIE-ChannelExtension>
-                            <X-JOLIE-ListenerExtension>kafka:jolie.net.KafkaCommListenerFactory</X-JOLIE-ListenerExtension>
+                            <X-JOLIE-ListenerExtension>kafka:jolie.net.KafkaCommListenerFactory
+                            </X-JOLIE-ListenerExtension>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -58,7 +60,8 @@
                                     <destFileName>${project.artifactId}.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/extensions</outputDirectory>
+                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/extensions
+                            </outputDirectory>
                         </configuration>
                     </execution>
                     <execution>
@@ -74,10 +77,18 @@
                                     <artifactId>kafka-clients</artifactId>
                                     <version>3.1.0</version>
                                     <type>jar</type>
-                                    <destFileName>kafka-client.jar</destFileName>
+                                    <destFileName>kafka-clients.jar</destFileName>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.slf4j</groupId>
+                                    <artifactId>slf4j-api</artifactId>
+                                    <version>1.7.30</version>
+                                    <type>jar</type>
+                                    <destFileName>slf4j-api.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
+                            <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib
+                            </outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -93,11 +104,11 @@
             <scope>compile</scope>
         </dependency>
 
-            <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
-            <dependency>
-                <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka-clients</artifactId>
-                <version>3.1.0</version>
-            </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.1.0</version>
+        </dependency>
     </dependencies>
 </project>

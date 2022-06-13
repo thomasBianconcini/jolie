@@ -6,42 +6,6 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="soaps" />
-        <module name="build-tools" />
-        <module name="auto" />
-        <module name="coreJavaServices" />
-        <module name="jolie-xml" />
-        <module name="jolie2wsdl" />
-        <module name="jolie-ssl" />
-        <module name="jolie-java" />
-        <module name="local" />
-        <module name="libjolie" />
-        <module name="rmi" />
-        <module name="joliec" />
-        <module name="launchers" />
-        <module name="xmlrpc" />
-        <module name="jolie-embedding-legacy" />
-        <module name="localsocket" />
-        <module name="https" />
-        <module name="jsonrpc" />
-        <module name="jolie2java" />
-        <module name="jolie-cli" />
-        <module name="WSTest" />
-        <module name="xsom" />
-        <module name="jolie-js" />
-        <module name="jolie2plasma" />
-        <module name="btl2cap" />
-        <module name="jolie (1)" />
-        <module name="sodeps" />
-        <module name="jolie-uri" />
-        <module name="javascript" />
-        <module name="kafka" />
-        <module name="jolie2surface" />
-        <module name="http" />
-        <module name="sodep" />
-        <module name="monitorJavaServices" />
-        <module name="metaservice-java" />
-        <module name="soap" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -49,6 +13,7 @@
       <module name="btl2cap" target="1.8" />
       <module name="build-tools" target="1.5" />
       <module name="coreJavaServices" target="1.8" />
+      <module name="distribution" target="11" />
       <module name="http" target="1.8" />
       <module name="https" target="1.8" />
       <module name="javascript" target="1.8" />
