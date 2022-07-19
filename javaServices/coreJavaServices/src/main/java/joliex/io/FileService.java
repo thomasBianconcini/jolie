@@ -91,7 +91,7 @@ import jolie.runtime.typing.Type;
  *
  * @author Fabrizio Montesi
  */
-@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json_simple.jar", "javax.activation.jar" } )
+@AndJarDeps( { "jolie-xml.jar", "xsom.jar", "jolie-js.jar", "json-simple.jar", "javax.activation.jar" } )
 public class FileService extends JavaService {
 	private final static Pattern FILE_KEYWORD_PATTERN = Pattern.compile( "(#+)file\\s+(.*)" );
 	private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -759,7 +759,7 @@ public class FileService extends JavaService {
 				Value fileValue = Value.create( p.toString() );
 				if( fileInfo ) {
 					Value info = fileValue.getFirstChild( "info" );
-					File currFile = path.toFile();
+					File currFile = new File( path.toString() );
 					info.getFirstChild( "lastModified" ).setValue( currFile.lastModified() );
 					info.getFirstChild( "size" ).setValue( currFile.length() );
 					info.getFirstChild( "absolutePath" ).setValue( currFile.getAbsolutePath() );
@@ -841,14 +841,16 @@ public class FileService extends JavaService {
 	public Value getParentPath( Value request ) throws FaultException {
 		Value response = Value.create();
 		String fileName = request.strValue();
-		URI uri = null;
 		Path parent = null;
 
 		try {
-			uri = new URL( fileName ).toURI();
-			parent = Paths.get( uri ).getParent();
-		} catch( InvalidPathException | URISyntaxException | MalformedURLException invalidPathException ) {
-			throw new FaultException( invalidPathException );
+			parent = Paths.get( fileName ).getParent();
+		} catch( InvalidPathException e ) {
+			try {
+				parent = Paths.get( new URL( fileName ).toURI() ).getParent();
+			} catch( InvalidPathException | URISyntaxException | MalformedURLException invalidPathException ) {
+				throw new FaultException( invalidPathException );
+			}
 		}
 
 		if( parent == null ) {

@@ -23,8 +23,10 @@ package jolie.net;
 
 import java.io.IOException;
 import java.net.URI;
+
 import javax.wsdl.WSDLException;
-import javax.xml.soap.SOAPException;
+
+import jakarta.xml.soap.SOAPException;
 import jolie.net.ext.CommProtocolFactory;
 import jolie.net.protocols.CommProtocol;
 import jolie.runtime.AndJarDeps;
@@ -34,20 +36,20 @@ import jolie.runtime.VariablePath;
 	"relaxngDatatype.jar",
 	"xsom.jar",
 	"wsdl4j.jar",
-	"jaxws/automaton.jar",
-	"jaxws/hamcrest-core.jar",
-	"jaxws/isorelax.jar",
-	"jaxws/jakarta.activation.jar",
-	"jaxws/jakarta.xml.soap-api.jar",
-	"jaxws/javax.xml.soap-api.jar",
-	"jaxws/jing.jar",
-	"jaxws/json-simple.jar",
-	"jaxws/saaj-impl.jar",
-	"jaxws/Saxon-HE.jar",
-	"jaxws/stax-ex.jar",
-	"jaxws/xercesImpl.jar"
+	"automaton.jar",
+	"hamcrest-core.jar",
+	"isorelax.jar",
+	"jakarta.activation.jar",
+	"jakarta.xml.soap-api.jar",
+	"javax.xml.soap-api.jar",
+	"jing.jar",
+	"json-simple.jar",
+	"Saxon-HE.jar",
+	"stax-ex.jar",
+	"webservices-rt.jar",
+	"webservices-api.jar",
+	"xercesImpl.jar"
 } )
-
 public class SoapProtocolFactory extends CommProtocolFactory {
 	public SoapProtocolFactory( CommCore commCore ) {
 		super( commCore );

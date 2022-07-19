@@ -96,9 +96,9 @@ class ModuleCrawler {
 		this.parserConfiguration = parserConfiguration;
 	}
 
-	private ModuleSource findModule( ImportPath importPath, URI parentURI )
+	private ModuleSource findModule( ImportPath importPath, URI source )
 		throws ModuleNotFoundException {
-		return finder.find( parentURI, importPath );
+		return finder.find( source, importPath );
 	}
 
 	private List< ModuleSource > crawlModule( ModuleRecord record ) throws ModuleException {
@@ -188,13 +188,14 @@ class ModuleCrawler {
 		for( Path path : exception.lookedPaths() ) {
 			Stream< Path > forloopStream;
 			try {
-				Path currentPath = path;
-				while( !Files.isDirectory( currentPath ) ) {
-					currentPath = currentPath.getParent();
+				if( !Files.isDirectory( path ) ) {
+					continue;
 				}
-				forloopStream = Files.list( currentPath );
-				fileNames.addAll( forloopStream.filter( file -> !Files.isDirectory( file ) ).map( Path::getFileName )
-					.map( Path::toString ).collect( Collectors.toSet() ) );
+				forloopStream = Files.list( path );
+				fileNames.addAll(
+					forloopStream.filter( file -> Files.isDirectory( file ) || file.toString().endsWith( ".ol" ) )
+						.map( Path::getFileName )
+						.map( Path::toString ).collect( Collectors.toSet() ) );
 				forloopStream.close();
 
 			} catch( IOException e ) {
@@ -218,13 +219,9 @@ class ModuleCrawler {
 		}
 		// Create help from matching file names
 		if( !proposedModules.isEmpty() ) {
-			message.append( "Maybe you meant:\n" );
-			for( String module : proposedModules ) {
-				String temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1 );
-				message.append( temp ).append( "\n" );
-			}
+			message.append( "Maybe you meant one of these modules: " ).append( String.join( ", ", proposedModules ) );
 		} else {
-			// If no mathing file names were found, report the file names that could be used instead
+			// If no matching file names were found, report the file names that could be used instead
 			message.append( "Could not find modules matching \"" ).append( exception.importPath() )
 				.append( "\". Here are some modules that can be imported:\n" );
 			for( String module : fileNames ) {
@@ -232,13 +229,17 @@ class ModuleCrawler {
 				// Correctly add the module names to the string
 				if( module.contains( "." ) ) {
 					int column = module.indexOf( "." );
-					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1, column );
+					temp = module.substring( 0, column );
 				} else {
-					temp = module.substring( 0, 1 ).toUpperCase() + module.substring( 1 );
+					temp = module;
 				}
-				message.append( temp ).append( "\n" );
+				message.append( temp ).append( ", " );
 			}
 		}
+		if( message.charAt( message.length() - 2 ) == ',' ) {
+			message.delete( message.length() - 2, message.length() );
+		}
+		// message.append( "\n" );
 		return message.toString();
 	}
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
+
 import jolie.lang.parse.ParserException;
 import jolie.lang.parse.Scanner;
 import jolie.lang.parse.ast.Program;
@@ -36,13 +37,19 @@ public class Modules {
 	}
 
 	public static ModuleParsedResult parseModule( ModuleParsingConfiguration configuration, InputStream stream,
-		URI programDirectory )
+		URI programURI )
 		throws ParserException, IOException, ModuleException {
 		ModuleParser parser = new ModuleParser( configuration );
-		ModuleFinder finder = new ModuleFinderImpl( configuration.packagePaths() );
-
 		ModuleRecord mainRecord = parser.parse(
-			new Scanner( stream, programDirectory, configuration.charset(), configuration.includeDocumentation() ) );
+			new Scanner( stream, programURI, configuration.charset(), configuration.includeDocumentation() ) );
+		ModuleFinder finder;
+
+		// TODO: This is a hack for Windows. Re-evaluate in the future.
+		if( programURI.toString().contains( "jap:" ) ) {
+			finder = new ModuleFinderDummy();
+		} else {
+			finder = new ModuleFinderImpl( programURI, configuration.packagePaths() );
+		}
 
 		ModuleCrawler.CrawlerResult crawlResult = ModuleCrawler.crawl( mainRecord, configuration, finder );
 

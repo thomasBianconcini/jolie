@@ -21,28 +21,27 @@
 
 package jolie.net;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+//import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import jolie.js.JsUtils;
+import jolie.lang.NativeType;
+import jolie.lang.parse.ast.types.BasicTypeDefinition;
 import jolie.net.protocols.ConcurrentCommProtocol;
 import jolie.runtime.ByteArray;
 import jolie.runtime.FaultException;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 import jolie.runtime.VariablePath;
+import jolie.runtime.typing.BasicType;
+import jolie.runtime.typing.Type;
+import jolie.util.Range;
 
 public class SodepProtocol extends ConcurrentCommProtocol {
 	private static class DataTypeHeaderId {
@@ -258,7 +257,37 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		}
 
 		final DataOutputStream oos = new DataOutputStream( ostream );
-		writeMessage( oos, message );
+
+		test( oos, message );
+		if( 1 == 9 )
+			writeMessage( oos, message );
+	}
+
+	public void test( DataOutputStream oos, CommMessage message ) throws IOException {
+		StringBuilder json = new StringBuilder();
+		Value value = Value.create();
+		value.getChildren( "params" ).set( 0, message.value() );
+		value.getFirstChild( "method" ).setValue( message.operationName() );
+		value.getFirstChild( "sodepAsync" ).setValue( "1.0" );
+		value.getFirstChild( "id" ).setValue( message.id() );
+		value.getFirstChild( "resorucePath" ).setValue( message.resourcePath() );
+		Type fullMessageType =
+			Type.create( BasicType.fromBasicTypeDefinition( BasicTypeDefinition.of( NativeType.VOID ) ),
+				new Range( 1, 1 ), false, null );
+		jolie.js.JsUtils.valueToJsonString( value, true, fullMessageType, json );
+
+		String jsonMessage = json.toString();
+		oos.write( jsonMessage.getBytes() );
+	}
+
+	public CommMessage readJson( DataInput in ) throws IOException {
+		Value value = Value.create();
+		String json = in.readLine();
+		JsUtils.parseJsonIntoValue( new InputStreamReader( new ByteArrayInputStream( json.getBytes() ) ), value,
+			false );
+		return new CommMessage( value.getFirstChild( "id" ).longValue(), value.getFirstChild( "method" ).strValue(),
+			value.getFirstChild( "resourcePath" ).strValue(),
+			value.getFirstChild( "params" ), null );
 	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
@@ -271,6 +300,9 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		}
 
 		final DataInputStream ios = new DataInputStream( istream );
-		return readMessage( ios );
+		if( 1 == 1 )
+			return readJson( ios );
+		else
+			return readMessage( ios );
 	}
 }

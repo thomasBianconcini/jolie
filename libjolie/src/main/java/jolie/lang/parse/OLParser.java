@@ -116,22 +116,7 @@ import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.types.BasicTypeDefinition;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
@@ -162,6 +147,10 @@ import jolie.util.UriUtils;
 public class OLParser extends AbstractParser {
 	private interface ParsingRunnable {
 		void parse() throws IOException, ParserException;
+	}
+
+	private interface ParsingSupplier {
+		OLSyntaxNode parse() throws IOException, ParserException;
 	}
 
 	private long faultIdCounter = 0;
@@ -416,7 +405,7 @@ public class OLParser extends AbstractParser {
 							nextToken();
 						} else {
 							setEndLine(); // set endLine for error
-							eatIdentifier( "expected type node name", "", Keywords.TYPE );
+							eatIdentifier( "expected type for node", "", Keywords.TYPE );
 						}
 
 						Range cardinality = parseCardinality();
@@ -3144,6 +3133,16 @@ public class OLParser extends AbstractParser {
 		return stm;
 	}
 
+	private OLSyntaxNode parseOutputExpressionNode( String id ) throws IOException, ParserException {
+		ParsingContext context = getContext();
+		String outputPortId = token.content();
+		nextToken();
+		OLSyntaxNode outputExpression = parseOperationExpressionParameter();
+		OLSyntaxNode expr = new SolicitResponseExpressionNode( context, id, outputPortId, outputExpression );
+
+		return expr;
+	}
+
 	private OLSyntaxNode parseWhileStatement()
 		throws IOException, ParserException {
 		ParsingContext context = getContext();
@@ -3294,6 +3293,25 @@ public class OLParser extends AbstractParser {
 		return sum;
 	}
 
+	private OLSyntaxNode inParens( ParsingSupplier supplier )
+		throws IOException, ParserException {
+		eat( Scanner.TokenType.LPAREN, "expected (" );
+		OLSyntaxNode retVal = supplier.parse();
+		eat( Scanner.TokenType.RPAREN, "expected )" );
+		return retVal;
+	}
+
+	private OLSyntaxNode parseIfExpression()
+		throws IOException, ParserException {
+		ParsingContext ctx = getContext();
+		eat( Scanner.TokenType.IF, "expected if" );
+		OLSyntaxNode guard = inParens( () -> parseExpression() );
+		OLSyntaxNode thenBranch = parseExpression();
+		eat( Scanner.TokenType.ELSE, "expected else part of if-expression" );
+		OLSyntaxNode elseBranch = parseExpression();
+		return new IfExpressionNode( ctx, guard, thenBranch, elseBranch );
+	}
+
 	private OLSyntaxNode parseFactor()
 		throws IOException, ParserException {
 		OLSyntaxNode retVal = null;
@@ -3303,13 +3321,20 @@ public class OLParser extends AbstractParser {
 
 		switch( token.type() ) {
 		case ID:
-			path = parseVariablePath();
-			VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
-			freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
-				new ConstantIntegerExpression( getContext(), 0 ) ) );
-			if( path.isEquivalentTo( freshValuePath ) ) {
-				retVal = new FreshValueExpressionNode( path.context() );
-				return retVal;
+			String id = token.content();
+			nextToken();
+			if( token.type() == Scanner.TokenType.AT ) {
+				nextToken();
+				return parseOutputExpressionNode( id );
+			} else {
+				path = _parseVariablePath( id );
+				VariablePathNode freshValuePath = new VariablePathNode( getContext(), Type.NORMAL );
+				freshValuePath.append( new Pair<>( new ConstantStringExpression( getContext(), "new" ),
+					new ConstantIntegerExpression( getContext(), 0 ) ) );
+				if( path.isEquivalentTo( freshValuePath ) ) {
+					retVal = new FreshValueExpressionNode( path.context() );
+					return retVal;
+				}
 			}
 			break;
 		case DOT:
@@ -3485,6 +3510,9 @@ public class OLParser extends AbstractParser {
 					NativeType.STRING,
 					parseExpression() );
 				eat( Scanner.TokenType.RPAREN, "expected )" );
+				break;
+			case IF:
+				retVal = parseIfExpression();
 				break;
 			default:
 				break;

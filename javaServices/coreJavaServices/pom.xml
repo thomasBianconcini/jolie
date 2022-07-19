@@ -14,8 +14,8 @@
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
     <name>coreJavaServices</name>
     <description>Core Java services.</description>
@@ -38,7 +38,7 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.1.1</version>
                 <executions>
-                   
+<!--                    
                     <execution>
                         <id>copy</id>
                         <phase>install</phase>
@@ -79,7 +79,7 @@
                                     <artifactId>json-simple</artifactId>
                                     <version>1.1.1</version>
                                     <type>jar</type>
-                                    <destFileName>json_simple.jar</destFileName>
+                                    <destFileName>json-simple.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>${project.groupId}</groupId>
@@ -226,14 +226,11 @@
                                     <destFileName>txw2.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>   
-                            <!--artifactItems>
-        
-                            </artifactItems-->
                             <outputDirectory>${project.parent.basedir}/${jolie.installation.directory}/lib</outputDirectory>
 
                         </configuration>
 
-                    </execution>
+                    </execution> -->
                     <execution>
                         <id>copy-installed</id>
                         <phase>install</phase>
@@ -255,6 +252,14 @@
                     </execution>
 
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -562,6 +567,11 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.9.10</version>
         </dependency>
     </dependencies>
 </project>

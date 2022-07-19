@@ -20,8 +20,9 @@
 package jolie.runtime.embedding;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import jolie.Interpreter;
@@ -39,10 +40,10 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 
 	@Override
 	public void load( Value v ) throws EmbeddedServiceLoadingException {
+		Path servicePath = Paths.get( serviceNode().context().source() );
 		Interpreter.Configuration configuration = Interpreter.Configuration.create(
 			super.interpreter().configuration(),
-			new File( "#" + interpreter().programFilename() + "#" + serviceNode().name() + "#"
-				+ SERVICE_LOADER_COUNTER.getAndIncrement() ),
+			servicePath.toFile(),
 			new ByteArrayInputStream( "".getBytes() ),
 			serviceNode().name() );
 
@@ -53,10 +54,11 @@ public class JolieServiceNodeLoader extends ServiceNodeLoader {
 
 			interpreter = new Interpreter(
 				configuration,
-				super.interpreter().programDirectory(),
-				super.interpreter(),
+				Paths.get( serviceNode().context().source() ).toFile(),
+				interpreter().symbolTables(),
 				builder.toProgram(),
-				v );
+				v,
+				interpreter().logPrefix() );
 
 			Future< Exception > f = interpreter.start();
 			Exception e = f.get();

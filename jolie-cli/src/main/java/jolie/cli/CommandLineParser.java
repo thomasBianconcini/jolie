@@ -35,17 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -280,9 +270,9 @@ public class CommandLineParser implements Closeable {
 		String tMode = "console";
 		String tLevel = "all";
 		List< String > programArgumentsList = new ArrayList<>();
-		Deque< String > includeList = new LinkedList<>();
-		List< String > libList = new ArrayList<>();
-		List< String > packagesList = new ArrayList<>();
+		Deque< String > includeList = new ArrayDeque<>();
+		Deque< String > libList = new ArrayDeque<>();
+		Deque< String > packagesList = new ArrayDeque<>();
 		int cLimit = -1;
 		long rTimeout = 36000 * 1000; // 10 minutes
 		String pwd = UriUtils.normalizeWindowsPath( new File( "" ).getCanonicalPath() );
@@ -540,7 +530,13 @@ public class CommandLineParser implements Closeable {
 			} else if( new File( path ).isDirectory() ) {
 				urls.add( new URL( "file:" + path + "/" ) );
 			} else if( path.endsWith( "/*" ) ) {
-				Path dir = Paths.get( path.substring( 0, path.length() - 2 ) );
+				Path dir;
+				if( path.startsWith( "file:" ) ) {
+					dir = Paths.get( path.substring( 5, path.length() - 2 ) );
+				} else {
+					dir = Paths.get( path.substring( 0, path.length() - 2 ) );
+				}
+
 				if( Files.isDirectory( dir ) ) {
 					dir = dir.toRealPath();
 					List< String > archives = Files.list( dir ).map( Path::toString )
@@ -568,7 +564,8 @@ public class CommandLineParser implements Closeable {
 			}
 		}
 
-		GetOLStreamResult olResult = getOLStream( ignoreFile, olFilepath, includeList, optionsList, jolieClassLoader );
+		GetOLStreamResult olResult =
+			getOLStream( ignoreFile, olFilepath, includeList, libList, optionsList, jolieClassLoader );
 
 		if( olResult.stream == null ) {
 			if( ignoreFile ) {
@@ -577,7 +574,8 @@ public class CommandLineParser implements Closeable {
 			} else if( olFilepath.endsWith( ".ol" ) ) {
 				// try to read the compiled version of the ol file
 				olFilepath += "c";
-				olResult = getOLStream( ignoreFile, olFilepath, includeList, optionsList, jolieClassLoader );
+				olResult = getOLStream( ignoreFile, olFilepath, includeList, libList, optionsList,
+					jolieClassLoader );
 				if( olResult.stream == null ) {
 					throw new FileNotFoundException( olFilepath );
 				}
@@ -661,6 +659,7 @@ public class CommandLineParser implements Closeable {
 	}
 
 	private GetOLStreamResult getOLStream( boolean ignoreFile, String olFilepath, Deque< String > includePaths,
+		Deque< String > libPaths,
 		Deque< String > optionsList, ClassLoader classLoader )
 		throws IOException {
 		GetOLStreamResult result = new GetOLStreamResult();
@@ -732,17 +731,18 @@ public class CommandLineParser implements Closeable {
 			final Optional< String > parent;
 			if( f.exists() && f.getParent() != null ) {
 				parent = Optional.of( f.getParent() );
+				libPaths.addFirst( parent.get() + File.separator + "lib/*" );
 			} else if( olURL != null ) {
 				String urlString = olURL.toString();
 				parent = Optional.of( urlString.substring( 0, urlString.lastIndexOf( '/' ) + 1 ) );
 			} else {
 				parent = Optional.empty();
 			}
-			if( parent.isPresent() ) {
+			parent.ifPresent( path -> {
 				includePaths.addFirst( parent.get() );
 				optionsList.addFirst( parent.get() );
 				optionsList.addFirst( "-l" );
-			}
+			} );
 			result.stream = new BufferedInputStream( result.stream );
 		}
 		return result;

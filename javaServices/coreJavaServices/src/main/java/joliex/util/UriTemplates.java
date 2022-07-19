@@ -22,23 +22,25 @@
 package joliex.util;
 
 
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
+
 import jolie.runtime.AndJarDeps;
+import jolie.runtime.FaultException;
 import jolie.runtime.JavaService;
 import jolie.runtime.Value;
 import jolie.runtime.ValueVector;
 
-import java.util.HashMap;
-import java.util.Map;
 
-
-@AndJarDeps( { "jolie-uri.jar", "uri-templates.jar", "joda-time.jar" } )
+@AndJarDeps( { "jolie-uri.jar", "handy-uri-templates.jar", "joda-time.jar" } )
 public class UriTemplates extends JavaService {
 	public Value match( Value request ) {
 		return jolie.uri.UriUtils.match( request.getFirstChild( "template" ).strValue(),
 			request.getFirstChild( "uri" ).strValue() );
 	}
 
-	public String expand( Value request ) {
+	public String expand( Value request ) throws FaultException {
 		Map< String, Object > params = new HashMap<>();
 		if( request.hasChildren( "params" ) ) {
 			for( final Map.Entry< String, ValueVector > entry : request.getFirstChild( "params" ).children()
@@ -46,6 +48,10 @@ public class UriTemplates extends JavaService {
 				params.put( entry.getKey(), entry.getValue().first().valueObject() );
 			}
 		}
-		return jolie.uri.UriUtils.expand( request.getFirstChild( "template" ).strValue(), params );
+		try {
+			return jolie.uri.UriUtils.expand( request.getFirstChild( "template" ).strValue(), params );
+		} catch( MalformedURLException e ) {
+			throw new FaultException( "IOException", e );
+		}
 	}
 }

@@ -22,10 +22,14 @@
 package jolie.xml;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -277,7 +281,49 @@ public class XmlUtils {
 	private static void _valueToDocument( Value value, Element element, Document doc, XSType type ) {
 		addForcedAttribute( value, element );
 		if( type.isSimpleType() ) {
-			element.appendChild( doc.createTextNode( value.strValue() ) );
+
+			if( type.asSimpleType().isRestriction()
+				&& type.asSimpleType().asRestriction().getBaseType() != null
+				&& type.asSimpleType().asRestriction().getBaseType().getName().equals( "decimal" )
+				&& type.asSimpleType().asRestriction().getDeclaredFacet( "pattern" ) != null
+				&& value.isDouble() ) {
+
+				String pattern = type.asSimpleType().asRestriction().getDeclaredFacet( "pattern" ).getValue().value;
+				Pattern patternForDigitNumber = Pattern.compile( ".*\\{(.*?)\\}" );
+				Matcher matcher = patternForDigitNumber.matcher( pattern );
+
+				Pattern patternForSeparator = Pattern.compile( ".*([,\\.])\\[0-9\\].*" );
+				Matcher matcherForSeparator = patternForSeparator.matcher( pattern );
+
+				if( matcher.find() ) {
+					String foundMinMax = matcher.group( 1 );
+					DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+					if( matcherForSeparator.matches() ) {
+						symbols.setDecimalSeparator( matcherForSeparator.group( 1 ).charAt( 0 ) );
+					} else {
+						symbols.setDecimalSeparator( '.' );
+					}
+
+					// symbols.setGroupingSeparator( ); // TODO
+					DecimalFormat df = new DecimalFormat();
+
+					// at the present grouping is not managed
+					df.setGroupingUsed( false );
+					df.setDecimalFormatSymbols( symbols );
+
+					df.setMinimumFractionDigits( Integer.parseInt( foundMinMax.split( "," )[ 0 ] ) );
+
+					if( foundMinMax.split( "," ).length > 1 ) {
+						df.setMaximumFractionDigits( Integer.parseInt( foundMinMax.split( "," )[ 1 ] ) );
+					}
+					element.appendChild( doc.createTextNode( df.format( value.doubleValue() ) ) );
+				} else {
+					element.appendChild( doc.createTextNode( value.strValue() ) );
+				}
+			} else {
+				element.appendChild( doc.createTextNode( value.strValue() ) );
+			}
+
 		} else if( type.isComplexType() ) {
 			String name;
 			Value currValue;

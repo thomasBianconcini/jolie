@@ -272,7 +272,6 @@ public class Interpreter {
 	private final ExecutorService timeoutHandlerExecutor =
 		Executors.newSingleThreadExecutor( new NativeJolieThreadFactory( this ) );
 
-
 	private final File programDirectory;
 	private OutputPort monitor = null;
 
@@ -664,7 +663,7 @@ public class Interpreter {
 	}
 
 	private String buildLogMessage( String message ) {
-		return logPrefix + message;
+		return '[' + logPrefix + "] " + message;
 	}
 
 	/**
@@ -835,7 +834,7 @@ public class Interpreter {
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
-		File programDirectory, Optional< Value > params )
+		File programDirectory, Optional< Value > params, Optional< String > parentLogPrefix )
 		throws IOException {
 		TracerUtils.TracerLevels tracerLevel = TracerUtils.TracerLevels.ALL;
 		this.configuration = configuration;
@@ -856,9 +855,10 @@ public class Interpreter {
 		commCore = new CommCore( this, configuration.connectionsLimit() /* , cmdParser.connectionsCache() */ );
 		includePaths = configuration.includePaths();
 
-		logPrefix = '[' +
-			configuration.programFilepath().getName() +
-			"] ";
+		logPrefix =
+			(parentLogPrefix.isPresent() ? parentLogPrefix.get() + " -> " + configuration.programFilepath().getName()
+				: configuration.programFilepath().getName())
+				+ (configuration.executionTarget() != null ? " -> " + configuration.executionTarget() : "");
 
 		if( configuration.tracer() ) {
 			if( configuration.tracerMode().equals( "file" ) ) {
@@ -902,31 +902,30 @@ public class Interpreter {
 	public Interpreter( Configuration configuration,
 		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram )
 		throws FileNotFoundException, IOException {
-		this( configuration, programDirectory, Optional.empty() );
+		this( configuration, programDirectory, Optional.empty(), Optional.of( parentInterpreter.logPrefix() ) );
 
 		this.parentInterpreter = parentInterpreter;
 		this.internalServiceProgram = internalServiceProgram;
 	}
 
 	/**
-	 * Constructor.
+	 * Constructor. for the JolieServiceNodeLoader
 	 *
 	 * @param programDirectory the program directory of this Interpreter, necessary if it is run inside
 	 *        a JAP file.
-	 * @param parentInterpreter
+	 * @param parentSymbolTables symbol table from the parent service
 	 * @param internalServiceProgram
 	 * @param receivingEmbeddedValue
 	 * @throws FileNotFoundException if one of the passed input files is not found.
 	 * @throws IOException if a Scanner constructor signals an error.
 	 */
 	public Interpreter( Configuration configuration,
-		File programDirectory, Interpreter parentInterpreter, Program internalServiceProgram,
-		Value receivingEmbeddedValue )
+		File programDirectory, Map< URI, SymbolTable > parentSymbolTables, Program internalServiceProgram,
+		Value receivingEmbeddedValue, String parentLogPrefix )
 		throws FileNotFoundException, IOException {
-		this( configuration, programDirectory, Optional.of( receivingEmbeddedValue ) );
-
-		this.parentInterpreter = parentInterpreter;
+		this( configuration, programDirectory, Optional.of( receivingEmbeddedValue ), Optional.of( parentLogPrefix ) );
 		this.internalServiceProgram = internalServiceProgram;
+		this.symbolTables.putAll( parentSymbolTables );
 	}
 
 	/**
@@ -1211,7 +1210,6 @@ public class Interpreter {
 				if( this.internalServiceProgram != null ) {
 					program = this.internalServiceProgram;
 					program = OLParseTreeOptimizer.optimize( program );
-					symbolTables.putAll( this.parentInterpreter.symbolTables );
 				} else {
 					ModuleParsingConfiguration configuration = new ModuleParsingConfiguration(
 						configuration().charset(),
@@ -1406,6 +1404,10 @@ public class Interpreter {
 			}
 		}
 		return factory;
+	}
+
+	public Map< URI, SymbolTable > symbolTables() {
+		return this.symbolTables;
 	}
 
 	public static class Configuration {

@@ -58,24 +58,40 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 		System.arraycopy( ss, 0, newArgs, 2 + options.length, ss.length );
 		CommandLineParser commandLineParser = new CommandLineParser( newArgs, currInterpreter.getClassLoader(), false );
 
-		Interpreter.Configuration config = commandLineParser.getInterpreterConfiguration();
-		Interpreter.Configuration.create(
-			config.connectionsLimit(), config.cellId(), config.correlationAlgorithm(), config.includePaths(),
-			config.optionArgs(),
-			config.libUrls(), config.inputStream(), config.charset(), config.programFilepath(), config.arguments(),
-			config.constants(),
-			config.jolieClassLoader(), config.isProgramCompiled(), config.typeCheck(), config.tracer(),
-			config.tracerLevel(),
-			config.tracerMode(), config.check(), config.printStackTraces(), config.responseTimeout(), config.logLevel(),
-			config.programDirectory(), config.packagePaths(),
+		Interpreter.Configuration cmdConfig = commandLineParser.getInterpreterConfiguration();
+		Interpreter.Configuration config = Interpreter.Configuration.create(
+			cmdConfig.connectionsLimit(),
+			cmdConfig.cellId(),
+			cmdConfig.correlationAlgorithm(),
+			cmdConfig.includePaths(),
+			cmdConfig.optionArgs(),
+			cmdConfig.libUrls(),
+			cmdConfig.inputStream(),
+			cmdConfig.charset(),
+			cmdConfig.programFilepath(),
+			cmdConfig.arguments(),
+			cmdConfig.constants(),
+			cmdConfig.jolieClassLoader(),
+			cmdConfig.isProgramCompiled(),
+			cmdConfig.typeCheck(),
+			cmdConfig.tracer(),
+			cmdConfig.tracerLevel(),
+			cmdConfig.tracerMode(),
+			cmdConfig.check(),
+			cmdConfig.printStackTraces(),
+			cmdConfig.responseTimeout(),
+			cmdConfig.logLevel(),
+			cmdConfig.programDirectory(),
+			cmdConfig.packagePaths(),
 			// difference:
-			serviceName.orElse( config.executionTarget() ),
+			serviceName.orElse( cmdConfig.executionTarget() ),
 			Optional.empty() );
 
 		interpreter = new Interpreter(
-			commandLineParser.getInterpreterConfiguration(),
+			config,
 			currInterpreter.programDirectory(),
-			params );
+			params,
+			Optional.of( currInterpreter.logPrefix() ) );
 	}
 
 	public JolieServiceLoader( String code, Expression channelDest, Interpreter currInterpreter )
@@ -85,7 +101,7 @@ public class JolieServiceLoader extends EmbeddedServiceLoader {
 			Interpreter.Configuration.create( currInterpreter.configuration(), new File( "#native_code_" +
 				SERVICE_LOADER_COUNTER.getAndIncrement() ), new ByteArrayInputStream( code.getBytes() ) );
 		interpreter = new Interpreter( configuration, currInterpreter.programDirectory(),
-			Optional.empty() );
+			Optional.empty(), Optional.of( currInterpreter.logPrefix() ) );
 	}
 
 	@Override

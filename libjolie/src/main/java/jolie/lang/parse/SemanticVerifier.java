@@ -106,22 +106,7 @@ import jolie.lang.parse.ast.courier.CourierChoiceStatement;
 import jolie.lang.parse.ast.courier.CourierDefinitionNode;
 import jolie.lang.parse.ast.courier.NotificationForwardStatement;
 import jolie.lang.parse.ast.courier.SolicitResponseForwardStatement;
-import jolie.lang.parse.ast.expression.AndConditionNode;
-import jolie.lang.parse.ast.expression.ConstantBoolExpression;
-import jolie.lang.parse.ast.expression.ConstantDoubleExpression;
-import jolie.lang.parse.ast.expression.ConstantIntegerExpression;
-import jolie.lang.parse.ast.expression.ConstantLongExpression;
-import jolie.lang.parse.ast.expression.ConstantStringExpression;
-import jolie.lang.parse.ast.expression.FreshValueExpressionNode;
-import jolie.lang.parse.ast.expression.InlineTreeExpressionNode;
-import jolie.lang.parse.ast.expression.InstanceOfExpressionNode;
-import jolie.lang.parse.ast.expression.IsTypeExpressionNode;
-import jolie.lang.parse.ast.expression.NotExpressionNode;
-import jolie.lang.parse.ast.expression.OrConditionNode;
-import jolie.lang.parse.ast.expression.ProductExpressionNode;
-import jolie.lang.parse.ast.expression.SumExpressionNode;
-import jolie.lang.parse.ast.expression.VariableExpressionNode;
-import jolie.lang.parse.ast.expression.VoidExpressionNode;
+import jolie.lang.parse.ast.expression.*;
 import jolie.lang.parse.ast.types.TypeChoiceDefinition;
 import jolie.lang.parse.ast.types.TypeDefinition;
 import jolie.lang.parse.ast.types.TypeDefinitionLink;
@@ -652,7 +637,6 @@ public class SemanticVerifier implements UnitOLVisitor {
 
 	@Override
 	public void visit( OneWayOperationDeclaration n ) {
-
 		if( definedTypes.get( n.requestType().name() ) == null ) {
 			if( !hasSymbolDefined( n.requestType().name(), n.context() ) ) {
 				error( n, "unknown type: " + n.requestType().name() + " for operation " + n.id() );
@@ -834,18 +818,8 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( n.inputVarPath() != null ) {
 			encounteredAssignment( n.inputVarPath() );
 		}
-		OutputPortInfo p = outputPorts.get( n.outputPortId() );
-		if( p == null ) {
-			error( n, n.outputPortId() + " is not a valid output port" );
-		} else {
-			OperationDeclaration decl = p.operationsMap().get( n.id() );
-			if( decl == null ) {
-				error( n, "Operation " + n.id() + " has not been declared in output port " + p.id() );
-			} else if( !(decl instanceof RequestResponseOperationDeclaration) ) {
-				error( n,
-					"Operation " + n.id() + " is not a valid request-response operation in output port " + p.id() );
-			}
-		}
+
+		checkSolicitResponseInOutputPort( n, n.id(), n.outputPortId() );
 
 		/*
 		 * if ( n.inputVarPath() != null && n.inputVarPath().isCSet() ) { error( n,
@@ -965,6 +939,17 @@ public class SemanticVerifier implements UnitOLVisitor {
 		if( n != null ) {
 			n.accept( this );
 		}
+	}
+
+	private void verify( OLSyntaxNode... nodes ) {
+		for( OLSyntaxNode node : nodes ) {
+			verify( node );
+		}
+	}
+
+	@Override
+	public void visit( IfExpressionNode n ) {
+		verify( n.guard(), n.thenExpression(), n.elseExpression() );
 	}
 
 	@Override
@@ -1428,6 +1413,26 @@ public class SemanticVerifier implements UnitOLVisitor {
 		}
 		if( n.bindingPort() != null && !outputPorts.containsKey( n.bindingPort().id() ) ) {
 			error( n, "binding port is not defined" );
+		}
+	}
+
+	@Override
+	public void visit( SolicitResponseExpressionNode n ) {
+		checkSolicitResponseInOutputPort( n, n.id(), n.outputPortId() );
+	}
+
+	private void checkSolicitResponseInOutputPort( OLSyntaxNode n, String id, String outputPortId ) {
+		OutputPortInfo p = outputPorts.get( outputPortId );
+		if( p == null ) {
+			error( n, outputPortId + " is not a valid output port" );
+		} else {
+			OperationDeclaration decl = p.operationsMap().get( id );
+			if( decl == null ) {
+				error( n, "Operation " + id + " has not been declared in output port " + p.id() );
+			} else if( !(decl instanceof RequestResponseOperationDeclaration) ) {
+				error( n,
+					"Operation " + id + " is not a valid request-response operation in output port " + p.id() );
+			}
 		}
 	}
 }
