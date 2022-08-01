@@ -258,15 +258,18 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 
 		final DataOutputStream oos = new DataOutputStream( ostream );
 
-		test( oos, message );
-		if( 1 == 9 )
+		String format = getStringParameter( "format" );
+
+		if( format.equals( "json" ) )
+			writeJson( oos, message );
+		else
 			writeMessage( oos, message );
 	}
 
-	public void test( DataOutputStream oos, CommMessage message ) throws IOException {
+	public void writeJson( DataOutputStream oos, CommMessage message ) throws IOException {
 		StringBuilder json = new StringBuilder();
 		Value value = Value.create();
-		value.getChildren( "params" ).set( 0, message.value() );
+		value.getChildren( "value" ).set( 0, message.value() );
 		value.getFirstChild( "method" ).setValue( message.operationName() );
 		value.getFirstChild( "sodepAsync" ).setValue( "1.0" );
 		value.getFirstChild( "id" ).setValue( message.id() );
@@ -287,7 +290,7 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 			false );
 		return new CommMessage( value.getFirstChild( "id" ).longValue(), value.getFirstChild( "method" ).strValue(),
 			value.getFirstChild( "resourcePath" ).strValue(),
-			value.getFirstChild( "params" ), null );
+			value.getFirstChild( "value" ), null );
 	}
 
 	public CommMessage recv( InputStream istream, OutputStream ostream )
@@ -300,7 +303,13 @@ public class SodepProtocol extends ConcurrentCommProtocol {
 		}
 
 		final DataInputStream ios = new DataInputStream( istream );
-		if( 1 == 1 )
+
+		// String eventBased = getStringParameter( "eventBased" );
+
+
+		String format = getStringParameter( "format" );
+
+		if( format.equals( "json" ) )
 			return readJson( ios );
 		else
 			return readMessage( ios );

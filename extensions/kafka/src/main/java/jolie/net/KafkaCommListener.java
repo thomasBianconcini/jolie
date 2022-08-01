@@ -23,7 +23,6 @@ public class KafkaCommListener extends CommListener {
 	CommProtocol protocol = null;
 	private KafkaCommChannel kafkaCommChannel = null;
 	KafkaConsumer< String, byte[] > consumerByte;
-	KafkaConsumer< String, String > consumerString;
 	private volatile boolean keepRun = true;
 
 	private final String tipe;
@@ -39,33 +38,14 @@ public class KafkaCommListener extends CommListener {
 		prop.put( "group.id", id );
 		prop.put( "auto.commit.interval.ms", "1000" );
 		prop.put( "key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer" );
-		/*
-		 * if( tipe.equals( "string" ) ) { prop.put( "value.deserializer",
-		 * "org.apache.kafka.common.serialization.StringDeserializer" ); this.protocol = createProtocol();
-		 * // Creation of Kafka Consumer this.consumerString = new KafkaConsumer<>( prop );
-		 * consumerString.subscribe( Arrays.asList( kafkaTopicName ) ); kafkaCommChannel = new
-		 * KafkaCommChannel( inputPort.location(), protocol ); kafkaCommChannel.setParentInputPort(
-		 * inputPort ); } else {
-		 */
 		if( tipe.equals( "byte" ) ) {
 			prop.put( "value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer" );
 			this.protocol = createProtocol();
 			this.consumerByte = new KafkaConsumer<>( prop );
-			// Creation of Kafka Consumer this.consumerByte = new KafkaConsumer<>( prop );
 			consumerByte.subscribe( Arrays.asList( kafkaTopicName ) );
 			kafkaCommChannel = new KafkaCommChannel( inputPort.location(), protocol );
 			kafkaCommChannel.setParentInputPort( inputPort );
-		} else if( tipe.equals( "string" ) ) {
-			prop.put( "value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer" );
-			this.protocol = createProtocol();
-			this.consumerString = new KafkaConsumer<>( prop );
-			// Creation of Kafka Consumer this.consumerByte = new KafkaConsumer<>( prop );
-			consumerString.subscribe( Arrays.asList( kafkaTopicName ) );
-			kafkaCommChannel = new KafkaCommChannel( inputPort.location(), protocol );
-			kafkaCommChannel.setParentInputPort( inputPort );
 		}
-		// }
-
 	}
 
 	@Override
@@ -84,25 +64,11 @@ public class KafkaCommListener extends CommListener {
 						//
 					}
 				}
-			} else if( tipe.equals( "string" ) ) {
-				ConsumerRecords< String, String > records = consumerString.poll( Duration.ofSeconds( 1 ) );
-				while( records.isEmpty() && keepRun ) {
-					records = consumerString.poll( Duration.ofSeconds( 1 ) );
-				}
-				/*
-				 * if( keepRun ) { for( ConsumerRecord< String, String > record : records ) { // for each message in
-				 * the topic KafkaMessage msg = new KafkaMessage( record.value().getBytes() );
-				 * kafkaCommChannel.setData( msg ); interpreter().commCore().scheduleReceive( kafkaCommChannel,
-				 * inputPort() ); // } } }
-				 */
 			}
 		}
 		if( tipe.equals( "byte" ) ) {
 			consumerByte.unsubscribe();
 			consumerByte.close();
-		} else if( tipe.equals( "string" ) ) {
-			consumerString.unsubscribe();
-			consumerString.close();
 		}
 		try {
 			KafkaConnectionHandler.closeConnection( inputPort().location() );

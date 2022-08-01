@@ -44,9 +44,7 @@ public class KafkaCommChannel extends StreamingCommChannel {
 		if( type.equals( "byte" ) ) {
 			if( byteProducer != null )
 				byteProducer.close();
-		} else if( type.equals( "string" ) )
-			if( stringProducer != null )
-				stringProducer.close();
+		}
 		KafkaConnectionHandler.closeConnection( location );
 	}
 
@@ -58,7 +56,6 @@ public class KafkaCommChannel extends StreamingCommChannel {
 			ByteArrayInputStream istream = new ByteArrayInputStream( data.pop().getBytes() );
 			return protocol().recv( istream, ostream );
 		}
-
 		// if we are an Outputport
 		if( message != null ) {
 			CommMessage msg = message;
@@ -92,12 +89,6 @@ public class KafkaCommChannel extends StreamingCommChannel {
 				ProducerRecord< String, byte[] > record =
 					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), ostream.toByteArray() );
 				byteProducer.send( (record) );
-			} else if( type.equals( "string" ) ) {
-				ps = ProducerSingleton.getInstance( prop, type );
-				stringProducer = ps.getStringProducer();
-				ProducerRecord< String, String > record =
-					new ProducerRecord<>( prop.getProperty( "kafka.topic.name" ), ostream.toString() );
-				stringProducer.send( (record) );
 			}
 		}
 		responseWaiters.add( message.requestId() );

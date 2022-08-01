@@ -28,15 +28,15 @@ public class KafkaConnection {
 	}
 
 	public Map< String, String > getAttributesMap( String query ) {
-		// location: "kafka://localhost:9092?topic=Test1&id=id"
-		String splits[] = location.toString().split( "\\?" );
-		Map< String, String > map = new HashMap();
+		// location: "kafka://localhost:9092?topic=Test1&id=idTest&type=byte"
+		String[] splits = location.toString().split( "\\?" );
+		Map< String, String > map = new HashMap<>();
 		String boot = splits[ 0 ].split( "//" )[ 1 ];
 		// boot= localhost:9092
 		map.put( "bootstrap", boot );
-		String attributes[] = query.split( "&" );
+		String[] attributes = query.split( "&" );
 		for( String attribute : attributes ) {
-			// topic=Test1&id=id
+			// topic=Test1&id=idTest&type=byte
 			String[] split = attribute.split( "=" );
 			String name = split[ 0 ];
 			String value = split.length >= 2 ? attribute.split( "=" )[ 1 ] : null;
